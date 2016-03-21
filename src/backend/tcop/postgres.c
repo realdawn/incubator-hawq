@@ -3518,6 +3518,26 @@ ProcessInterrupts(void)
 
 		QueryCancelPending = false;
 			ImmediateInterruptOK = false;	/* not idle anymore */
+		/*
+		 * Fix the resource leak bug.
+		 *
+		 *
+		 */
+
+		elog(LOG,"Tell me the ResourceIndex: %d" ,GetResourceIndex());
+		if (GetResourceIndex() != -1)
+		{
+			QueryResource	*resource = NULL;
+			resource = makeNode(QueryResource);
+			resource->life = QRL_ONCE;
+			resource->master = GetMasterSegment();
+			SetMasterAddress(resource->master->hostip ? resource->master->hostip : resource->master->hostname,
+								resource->master->port);
+			resource->resource_id = GetResourceIndex();
+			resource->master_start_time = PgStartTime;
+			resource->segments = NIL;
+			FreeResource(resource);
+		}
 			DisableNotifyInterrupt();
 			DisableCatchupInterrupt();
 			if (Gp_role == GP_ROLE_EXECUTE)

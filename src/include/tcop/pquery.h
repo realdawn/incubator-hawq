@@ -19,6 +19,7 @@
 
 extern PGDLLIMPORT Portal ActivePortal;
 
+extern int GetResourceIndex(void);
 
 extern PortalStrategy ChoosePortalStrategy(List *stmts);
 
@@ -43,3 +44,4 @@ extern int64 PortalRunFetch(Portal portal,
 			   DestReceiver *dest);
 
 #endif   /* PQUERY_H */
+

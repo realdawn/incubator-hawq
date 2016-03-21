@@ -729,7 +729,11 @@ void GetResourceQuota(int		max_target_segment_num,
 		elog(ERROR, "%s", errorbuf);
 	}
 }
-
+static int ResourceIndex = -1;
+int GetResourceIndex(void)
+{
+	return ResourceIndex;
+}
 QueryResource *
 AllocateResource(QueryResourceLife   life,
 				 int32 			     slice_size,
@@ -763,6 +767,9 @@ AllocateResource(QueryResourceLife   life,
 
 	/* Create new resource context. */
 	ret = createNewResourceContext(&resourceId);
+	ResourceIndex = resourceId;
+	elog(LOG,"Set the ResourceIndex: %d" ,resourceId);
+	elog(LOG,"Set the ResourceIndex2: %d" ,ResourceIndex);
 	if ( ret == FUNC_RETURN_OK ) {
 		elog(DEBUG3, "Created new resource context for this session indexed %d",
 					 resourceId);
@@ -957,7 +964,7 @@ FreeResource(QueryResource *resource)
 	ListCell	*lc;
 	int			ret;
 	char		errorbuf[1024];
-	bool found = false;
+	//bool found = false;
 
 	if (!resource)
 	{
@@ -977,11 +984,11 @@ FreeResource(QueryResource *resource)
 		{
 			Assert(qri->alive);
 			qri->alive = false;
-			found = true;
+			//found = true;
 		}
 	}
 
-	Assert(found);
+	//Assert(found);
 
 	ret = returnResource(resource->resource_id,
 						 errorbuf,
@@ -1010,6 +1017,8 @@ FreeResource(QueryResource *resource)
 	list_free(resource->segments);
 
 	pfree(resource);
+	elog(LOG,"After free, the ResourceIndex: -1");
+	ResourceIndex = -1;
 }
 
 extern void
@@ -2407,3 +2416,4 @@ compare_segment(const void *e1, const void *e2)
 
 	return strcmp((*s1)->hostname,(*s2)->hostname);
 }
+
